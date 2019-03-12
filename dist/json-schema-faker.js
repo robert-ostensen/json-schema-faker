@@ -1,6 +1,6 @@
 /*!
  * json-schema-faker v0.5.0-rc16
- * (c) 2018-present Alvaro Cabrera <pateketrueke@gmail.com> (https://soypache.co)
+ * (c) 2019-present Alvaro Cabrera <pateketrueke@gmail.com> (https://soypache.co)
  * Released under the MIT License.
  */
 (function (global, factory) {
@@ -95,7 +95,7 @@
    * This class defines a registry for custom settings used within JSF.
    */
 
-  var OptionRegistry = (function (Registry$$1) {
+  var OptionRegistry = /*@__PURE__*/(function (Registry$$1) {
     function OptionRegistry() {
       Registry$$1.call(this);
       this.data = Object.assign({}, defaults);
@@ -778,6 +778,25 @@
       clone() {
           return new DRange(this);
       }
+
+      numbers() {
+          return this.ranges.reduce((result, subrange) => {
+              var i = subrange.low;
+              while (i <= subrange.high) {
+                  result.push(i);
+                  i++;
+              }
+              return result;
+          }, []);
+      }
+
+      subranges() {
+          return this.ranges.map((subrange) => ({
+              low: subrange.low,
+              high: subrange.high,
+              length: 1 + subrange.high - subrange.low
+          }));
+      }
   }
 
   var lib$1 = DRange;
@@ -1326,6 +1345,24 @@
             value = value.substr(0, max$1);
           }
 
+          switch (schema.format) {
+            case 'date-time':
+            case 'datetime':
+              value = new Date(value).toISOString();
+              break;
+
+            case 'date':
+              value = new Date(value).toISOString().substr(0, 10);
+              break;
+
+            case 'time':
+              value = new Date(value).toISOString().substr(11);
+              break;
+
+            default:
+              break;
+          }
+
           break;
         }
 
@@ -1659,7 +1696,7 @@
     }
   }
 
-  var ParseError = (function (Error) {
+  var ParseError = /*@__PURE__*/(function (Error) {
     function ParseError(message, path) {
       Error.call(this);
 
@@ -1826,7 +1863,7 @@
     var length = random.number(minItems, maxItems, 1, 5);
 
     if (optionalsProbability !== false) {
-      length = fixedProbabilities ? Math.round(maxItems * optionalsProbability) : random.number(minItems, maxItems * optionalsProbability);
+      length = fixedProbabilities ? Math.round((maxItems || length) * optionalsProbability) : Math.abs(random.number(minItems, maxItems) * optionalsProbability);
     } // TODO below looks bad. Should additionalItems be copied as-is?
 
 
@@ -2461,7 +2498,7 @@
 
   function run(refs, schema, container) {
     try {
-      var result = traverse(schema, [], function reduce(sub, maxReduceDepth, parentSchemaPath) {
+      var result = traverse(utils.merge({}, schema), [], function reduce(sub, maxReduceDepth, parentSchemaPath) {
         if (typeof maxReduceDepth === 'undefined') {
           maxReduceDepth = random.number(1, 3);
         }
@@ -2682,6 +2719,46 @@
         circular: 'ignore'
       }
     }).then(function (sub) { return run($refs, sub, container); });
+  };
+
+  jsf.load = function (schema, refs, cwd) {
+    if (typeof refs === 'string') {
+      cwd = refs;
+      refs = {};
+    } // normalize basedir (browser aware)
+
+
+    cwd = cwd || (typeof process !== 'undefined' ? process.cwd() : '');
+    cwd = (cwd.replace(/\/+$/, '')) + "/";
+    var $refs = getRefs(refs); // identical setup as json-schema-sequelizer
+
+    var fixedRefs = {
+      order: 300,
+      canRead: true,
+
+      read: function read(file, callback) {
+        try {
+          callback(null, $refs[file.url] || $refs[file.url.split('/').pop()]);
+        } catch (e) {
+          callback(e);
+        }
+      }
+
+    };
+    return $RefParser.dereference(cwd, schema, {
+      resolve: {
+        file: {
+          order: 100
+        },
+        http: {
+          order: 200
+        },
+        fixedRefs: fixedRefs
+      },
+      dereference: {
+        circular: 'ignore'
+      }
+    }).then(function (sub) { return function () { return run($refs, sub, container); }; });
   };
 
   setupKeywords();

@@ -122,6 +122,44 @@ jsf.resolve = (schema, refs, cwd) => {
     }).then(sub => run($refs, sub, container));
 };
 
+jsf.load = (schema, refs, cwd) => {
+  if (typeof refs === 'string') {
+    cwd = refs;
+    refs = {};
+  }
+
+  // normalize basedir (browser aware)
+  cwd = cwd || (typeof process !== 'undefined' ? process.cwd() : '');
+  cwd = `${cwd.replace(/\/+$/, '')}/`;
+
+  const $refs = getRefs(refs);
+
+  // identical setup as json-schema-sequelizer
+  const fixedRefs = {
+    order: 300,
+    canRead: true,
+    read(file, callback) {
+      try {
+        callback(null, $refs[file.url] || $refs[file.url.split('/').pop()]);
+      } catch (e) {
+        callback(e);
+      }
+    },
+  };
+
+  return $RefParser
+    .dereference(cwd, schema, {
+      resolve: {
+        file: { order: 100 },
+        http: { order: 200 },
+        fixedRefs,
+      },
+      dereference: {
+        circular: 'ignore',
+      },
+    }).then(sub => () => run($refs, sub, container));
+};
+
 setupKeywords();
 
 jsf.format = format;

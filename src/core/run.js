@@ -141,7 +141,7 @@ function run(refs, schema, container) {
 
         // this is the only case where all sub-schemas
         // must be resolved before any merge
-        schemas.forEach(subSchema => {
+        schemas.filter(i => !!i).forEach(subSchema => {
           const _sub = reduce(subSchema, maxReduceDepth + 1, parentSchemaPath);
 
           // call given thunks if present

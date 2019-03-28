@@ -9,7 +9,7 @@
   "scripts": {
     "build:concat:dist": "concat -o dist/json-schema-faker.bundle.min.js node_modules/json-schema-ref-parser/dist/ref-parser.min.js node_modules/jsonpath/jsonpath.js dist/json-schema-faker.min.js",
     "build:browser": "bili --banner --target browser --format umd,umd-min --moduleName JSONSchemaFaker --name json-schema-faker --js buble && npm run build:concat:dist",
-    "build:node": "bili src/index.js --target node --js buble --format es,cjs",
+    "build:node": "bili src/index.js --target node --js buble --sourcemap --format es,cjs",
     "build": "npm run build:browser && npm run build:node",
     "dev": "npm test -- -w",
     "test": "npm run test:unit --",
@@ -49,7 +49,9 @@
     "external": [
       "json-schema-ref-parser",
       "jsonpath"
-    ]
+    ],
+    "sourceMap": true,
+    "output": {}
   },
   "devDependencies": {
     "ajv": "^6.5.3",
@@ -75,7 +77,7 @@
     "z-schema": "^3.18.4"
   },
   "dependencies": {
-    "json-schema-ref-parser": "^5.0.0",
+    "json-schema-ref-parser": "^6.1.0",
     "jsonpath": "^1.0.0",
     "randexp": "^0.5.3"
   }

@@ -48,6 +48,7 @@ function objectType(value, path, resolve, traverseCallback) {
   }
 
   const optionalsProbability = optionAPI('alwaysFakeOptionals') === true ? 1.0 : optionAPI('optionalsProbability');
+  const fakeAllOptionals = optionAPI('alwaysFakeOptionalObjects') || false;
   const fixedProbabilities = optionAPI('fixedProbabilities') || false;
   const ignoreProperties = optionAPI('ignoreProperties') || [];
 
@@ -66,6 +67,9 @@ function objectType(value, path, resolve, traverseCallback) {
     } else {
       neededExtras = random.number(min - requiredProperties.length, optionalsProbability * (max - min));
     }
+  }
+  if (fakeAllOptionals !== false) {
+    neededExtras = optionalProperties.length;
   }
 
   const extraPropertiesRandomOrder = random.shuffle(optionalProperties).slice(0, neededExtras);

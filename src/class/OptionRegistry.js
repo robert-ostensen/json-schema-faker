@@ -10,6 +10,7 @@ defaults.ignoreMissingRefs = false;
 defaults.failOnInvalidTypes = true;
 defaults.failOnInvalidFormat = true;
 
+defaults.alwaysFakeOptionalObjects = true;
 defaults.alwaysFakeOptionals = false;
 defaults.optionalsProbability = false;
 defaults.fixedProbabilities = false;

@@ -67,6 +67,7 @@ defaults.ignoreProperties = [];
 defaults.ignoreMissingRefs = false;
 defaults.failOnInvalidTypes = true;
 defaults.failOnInvalidFormat = true;
+defaults.alwaysFakeOptionalObjects = true;
 defaults.alwaysFakeOptionals = false;
 defaults.optionalsProbability = false;
 defaults.fixedProbabilities = false;
@@ -1067,6 +1068,7 @@ function objectType(value, path, resolve, traverseCallback) {
   }
 
   var optionalsProbability = optionAPI('alwaysFakeOptionals') === true ? 1.0 : optionAPI('optionalsProbability');
+  var fakeAllOptionals = optionAPI('alwaysFakeOptionalObjects') || false;
   var fixedProbabilities = optionAPI('fixedProbabilities') || false;
   var ignoreProperties = optionAPI('ignoreProperties') || [];
   var min = Math.max(value.minProperties || 0, requiredProperties.length);
@@ -1083,6 +1085,10 @@ function objectType(value, path, resolve, traverseCallback) {
     } else {
       neededExtras = random.number(min - requiredProperties.length, optionalsProbability * (max - min));
     }
+  }
+
+  if (fakeAllOptionals !== false) {
+    neededExtras = optionalProperties.length;
   }
 
   var extraPropertiesRandomOrder = random.shuffle(optionalProperties).slice(0, neededExtras);
